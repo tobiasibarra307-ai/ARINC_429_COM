@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f3">
+  <title>Crear envío | ARINC-429</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #183532;
+      --muted: #637470;
+      --line: #cbd5d0;
+      --paper: #f4f6f3;
+      --surface: #fff;
+      --accent: #087e70;
+      --accent-hover: #06695e;
+      --signal: #c35c3d;
+      --error: #a33232;
+      --success: #176947;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background-color: var(--paper);
+      background-image: linear-gradient(#18353208 1px, transparent 1px),
+                        linear-gradient(90deg, #18353208 1px, transparent 1px);
+      background-size: 28px 28px;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 68px;
+      padding: 0 6vw;
+      border-bottom: 1px solid var(--line);
+      background: #f4f6f3ed;
+    }
+
+    .brand {
+      font-size: 0.82rem;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .status::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      content: "";
+    }
+
+    main {
+      width: min(100% - 40px, 1040px);
+      margin: clamp(38px, 8vh, 84px) auto 72px;
+      animation: appear 380ms ease-out both;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 0.74rem;
+      font-weight: 750;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.2rem, 6vw, 3.3rem);
+      font-weight: 500;
+      line-height: 1.05;
+    }
+
+    .intro {
+      max-width: 48ch;
+      margin: 16px 0 34px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    form {
+      padding: clamp(22px, 5vw, 36px);
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--accent);
+      border-radius: 6px;
+      background: var(--surface);
+      box-shadow: 0 16px 38px #18353212;
+    }
+
+    .field { margin-bottom: 24px; }
+
+    label {
+      display: block;
+      margin-bottom: 9px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    select, input {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 13px;
+      border: 1px solid #aebcb6;
+      border-radius: 3px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent);
+      outline: 3px solid #087e7026;
+      outline-offset: 1px;
+    }
+
+    .hint {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
+    .word-input {
+      font-size: 1.12rem;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .word-preview {
+      margin: -4px 0 24px;
+      padding: 15px 17px;
+      border-left: 3px solid var(--signal);
+      background: #f8f3ed;
+    }
+
+    .preview-label {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .word-preview output {
+      display: block;
+      overflow-wrap: anywhere;
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .word-preview output + output {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .bit-breakdown {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin: -12px 0 24px;
+    }
+
+    .bit-part {
+      min-width: 0;
+      padding: 9px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .bit-part span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 0.65rem;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .bit-part code {
+      display: block;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.76rem;
+    }
+
+    .range-note {
+      margin: -14px 0 22px;
+      padding: 11px 13px;
+      border-left: 3px solid var(--signal);
+      background: #f8f3ed;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .range-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .range-fields .field { margin-bottom: 24px; }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 50px;
+      border: 0;
+      border-radius: 4px;
+      background: var(--accent);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 140ms ease, transform 140ms ease;
+    }
+
+    button:hover:not(:disabled) { background: var(--accent-hover); }
+    button:active:not(:disabled) { transform: translateY(1px); }
+    button:disabled { cursor: wait; opacity: 0.65; }
+
+    .message {
+      min-height: 24px;
+      margin: 16px 0 0;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .message[data-state="success"] { color: var(--success); }
+    .message[data-state="error"] { color: var(--error); }
+
+    .form-column { max-width: 620px; }
+
+    .inventory-form {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .inventory-form label { display: block; color: var(--muted); font-size: 0.78rem; font-weight: 700; }
+    .inventory-form input, .inventory-form select, .inventory-form textarea {
+      width: 100%; min-height: 42px; margin-top: 6px; padding: 8px 10px;
+      border: 1px solid #aebcb6; border-radius: 3px; background: #fff; color: var(--ink); font: inherit;
+    }
+    .inventory-form textarea { min-height: 42px; resize: vertical; }
+    .inventory-form .wide { grid-column: span 2; }
+    .inventory-form button { min-height: 42px; align-self: end; }
+    .inventory-actions { display: flex; gap: 6px; }
+    .inventory-actions button { width: auto; min-height: 34px; padding: 0 9px; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 0.78rem; }
+    .inventory-actions .delete-button:hover { border-color: var(--error); color: var(--error); }
+    #mensaje-instrumentos { min-height: 22px; color: var(--muted); font-size: 0.84rem; }
+
+    .records {
+      margin-top: 54px;
+      animation: appear 480ms ease-out both;
+    }
+
+    .records-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .records-heading h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.7rem;
+      font-weight: 500;
+    }
+
+    .records-heading p, .list-message {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .table-scroll { overflow-x: auto; border-top: 1px solid var(--line); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffffbf;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 13px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    td { font-size: 0.88rem; line-height: 1.45; }
+    .row-actions { display: flex; gap: 6px; }
+
+    .row-actions button {
+      width: auto;
+      min-height: 34px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+      font-size: 0.78rem;
+    }
+
+    .row-actions button:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: #eaf4f1;
+    }
+
+    .row-actions .delete-button:hover:not(:disabled) {
+      border-color: var(--error);
+      background: #fff0ef;
+      color: var(--error);
+    }
+
+    .row-actions .tone-button { border-color: #93aaa0; color: #176947; }
+    .word-cell { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.8rem; white-space: nowrap; }
+    .mode-label { display: inline-block; padding: 3px 6px; border: 1px solid #d5b66c; color: #6b4b10; font-size: 0.7rem; white-space: nowrap; }
+
+    #cancelar-edicion {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+    }
+
+    #cancelar-edicion:hover { background: #eaf4f1; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 640px) {
+      .records-heading { align-items: flex-start; flex-direction: column; gap: 5px; }
+      .inventory-form { grid-template-columns: 1fr; }
+      .inventory-form .wide { grid-column: auto; }
+      .range-fields { grid-template-columns: 1fr; gap: 0; }
+      .bit-breakdown { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .bit-part:nth-child(3) { grid-column: span 2; }
+      th, td { padding: 11px 8px; }
+      th:last-child, td:last-child { padding-right: 0; }
+      .row-actions { flex-direction: column; }
+      .row-actions button { justify-content: flex-start; }
+    }
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">ARINC-429</div>
+    <div class="status">MySQL local</div>
+  </header>
+
+  <main>
+    <div class="form-column">
+      <p class="eyebrow">Operaciones / Nuevo registro</p>
+      <h1 id="titulo-formulario">Crear envío</h1>
+      <p class="intro">Selecciona un instrumento activo del inventario, define el rango de medición y proporciona la palabra ARINC completa de 32 bits.</p>
+
+      <form id="form-envio">
+        <div class="field">
+          <label for="perfil-instrumento">Instrumento registrado</label>
+          <select id="perfil-instrumento" required disabled>
+            <option value="">Cargando instrumentos…</option>
+          </select>
+          <p id="nota-perfil" class="hint">Se mostrarán aquí los datos del instrumento guardado en el inventario.</p>
+        </div>
+
+        <div class="field">
+          <label for="numero-serie">Número de serie</label>
+          <input id="numero-serie" name="numero_serie" type="text" maxlength="120"
+                 placeholder="Ej.: BM-2048" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label for="tipo-instrumento">Tipo de instrumento</label>
+          <select id="tipo-instrumento" name="tipo_instrumento" required>
+            <option value="">Selecciona el tipo</option>
+            <option value="analogico">Analógico</option>
+            <option value="digital">Digital</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="valor-medicion">Valor medido <span id="unidad-medicion"></span></label>
+          <input id="valor-medicion" type="number" step="any" required>
+          <p class="hint">La medición física y la palabra ARINC son campos distintos.</p>
+        </div>
+
+        <div class="field">
+          <label for="dato-raw">Palabra ARINC (32 bits)</label>
+          <input id="dato-raw" class="word-input" name="dato_raw" type="number" min="0" max="4294967295"
+                 step="1" value="0" inputmode="numeric" required>
+          <p class="hint">Número entero entre 0 y 4294967295. La palabra se guarda exactamente como la ingresas.</p>
+        </div>
+
+        <div class="word-preview" aria-live="polite">
+          <p class="preview-label">Vista previa de la palabra</p>
+          <output id="preview-hex">0x00000000</output>
+          <output id="preview-bin">0000 0000 0000 0000 0000 0000 0000 0000</output>
+        </div>
+
+        <div class="bit-breakdown" aria-label="Desglose estándar de bits ARINC 429">
+          <div class="bit-part"><span>Paridad · bit 32</span><code id="bits-paridad">0</code></div>
+          <div class="bit-part"><span>SSM · bits 30–31</span><code id="bits-ssm">00</code></div>
+          <div class="bit-part"><span>Datos · bits 11–29</span><code id="bits-datos">0000000000000000000</code></div>
+          <div class="bit-part"><span>SDI · bits 9–10</span><code id="bits-sdi">00</code></div>
+          <div class="bit-part"><span>Label · bits 1–8</span><code id="bits-label">00000000</code></div>
+        </div>
+
+        <div class="range-fields" aria-label="Límites de entrada">
+          <div class="field">
+            <label for="dato-minimo">Mínimo de medición</label>
+            <input id="dato-minimo" type="number" min="0" max="4294967295"
+                   step="1" value="0" required>
+          </div>
+
+          <div class="field">
+            <label for="dato-maximo">Máximo de medición</label>
+            <input id="dato-maximo" type="number" min="0" max="4294967295"
+                   step="1" value="4294967295" required>
+          </div>
+        </div>
+        <p id="nota-rango" class="range-note" hidden>Este es un rango nominal de referencia, no sustituye los límites del manual del instrumento instalado.</p>
+
+        <button id="boton-enviar" type="submit" disabled>
+          <span id="texto-boton">Crear envío</span>
+          <span aria-hidden="true">&#8594;</span>
+        </button>
+        <button id="cancelar-edicion" type="button" hidden>Cancelar edición</button>
+        <p id="mensaje" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+
+    <section class="records" aria-labelledby="titulo-envios">
+      <div class="records-heading">
+        <h2 id="titulo-envios">Envíos registrados</h2>
+        <p id="contador-envios">Cargando registros…</p>
+      </div>
+      <p id="mensaje-listado" class="list-message" role="status" aria-live="polite"></p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Instrumento</th><th>Número de serie</th><th>Tipo</th><th>Medición</th><th>Palabra decimal</th><th>Palabra ARINC</th><th>Salida</th><th>Fecha UTC</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="filas-envios"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="records" aria-labelledby="titulo-instrumentos">
+      <div class="records-heading">
+        <h2 id="titulo-instrumentos">Inventario de instrumentos</h2>
+        <p id="contador-instrumentos">Cargando inventario…</p>
+      </div>
+      <form id="form-instrumento" class="inventory-form">
+        <label>Instrumento *<select id="inv-nombre" required disabled><option value="">Cargando catálogo…</option></select></label>
+        <label>Modelo<input id="inv-modelo" maxlength="100"></label>
+        <label>Fabricante<input id="inv-fabricante" maxlength="150"></label>
+        <label>Tipo<input id="inv-tipo" maxlength="100"></label>
+        <label>Estado<select id="inv-estado"><option value="activo">Activo</option><option value="mantenimiento">Mantenimiento</option><option value="inactivo">Inactivo</option></select></label>
+        <label class="wide">Descripción<textarea id="inv-descripcion"></textarea></label>
+        <button id="guardar-instrumento" type="submit">Agregar instrumento</button>
+        <button id="cancelar-instrumento" type="button" hidden>Cancelar</button>
+      </form>
+      <p id="mensaje-instrumentos" role="status" aria-live="polite"></p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>ID</th><th>Instrumento</th><th>Modelo</th><th>Fabricante</th><th>Tipo</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="filas-instrumentos"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const formulario = document.querySelector("#form-envio");
+    const selectorPerfil = document.querySelector("#perfil-instrumento");
+    const notaPerfil = document.querySelector("#nota-perfil");
+    const campoNumeroSerie = document.querySelector("#numero-serie");
+    const campoTipoInstrumento = document.querySelector("#tipo-instrumento");
+    const campoMedicion = document.querySelector("#valor-medicion");
+    const unidadMedicion = document.querySelector("#unidad-medicion");
+    const notaRango = document.querySelector("#nota-rango");
+    const campoDato = document.querySelector("#dato-raw");
+    const campoMinimo = document.querySelector("#dato-minimo");
+    const campoMaximo = document.querySelector("#dato-maximo");
+    const previewHex = document.querySelector("#preview-hex");
+    const previewBin = document.querySelector("#preview-bin");
+    const camposBits = {
+      paridad: document.querySelector("#bits-paridad"),
+      ssm: document.querySelector("#bits-ssm"),
+      datos: document.querySelector("#bits-datos"),
+      sdi: document.querySelector("#bits-sdi"),
+      label: document.querySelector("#bits-label")
+    };
+    const boton = document.querySelector("#boton-enviar");
+    const mensaje = document.querySelector("#mensaje");
+    const tituloFormulario = document.querySelector("#titulo-formulario");
+    const textoBoton = document.querySelector("#texto-boton");
+    const cancelarEdicion = document.querySelector("#cancelar-edicion");
+    const filasEnvios = document.querySelector("#filas-envios");
+    const contadorEnvios = document.querySelector("#contador-envios");
+    const mensajeListado = document.querySelector("#mensaje-listado");
+    const formularioInstrumento = document.querySelector("#form-instrumento");
+    const filasInstrumentos = document.querySelector("#filas-instrumentos");
+    const mensajeInstrumentos = document.querySelector("#mensaje-instrumentos");
+    const contadorInstrumentos = document.querySelector("#contador-instrumentos");
+    const botonGuardarInstrumento = document.querySelector("#guardar-instrumento");
+    const cancelarInstrumento = document.querySelector("#cancelar-instrumento");
+    let envios = [];
+    let idEnEdicion = null;
+    let perfiles = [];
+    let catalogoInstrumentos = [];
+    let idInstrumentoEnEdicion = null;
+    let envioEnCurso = false;
+    let claveSolicitud = crypto.randomUUID();
+
+    function perfilSeleccionado() {
+      return perfiles.find((perfil) => String(perfil.id) === selectorPerfil.value) || null;
+    }
+
+    function actualizarPerfil() {
+      const perfil = perfilSeleccionado();
+      notaRango.hidden = true;
+      campoMinimo.readOnly = false;
+      campoMaximo.readOnly = false;
+      if (perfil) {
+        const detalle = [perfil.modelo, perfil.fabricante, perfil.tipo].filter(Boolean).join(" · ");
+        notaPerfil.textContent = detalle || `Estado: ${perfil.estado}. Define abajo el rango de medición.`;
+      } else {
+        notaPerfil.textContent = "Selecciona un instrumento activo del inventario.";
+      }
+      unidadMedicion.textContent = "";
+      actualizarLimitesDato();
+    }
+
+    function actualizarLimitesDato() {
+      campoMinimo.setCustomValidity("");
+      campoMaximo.setCustomValidity("");
+      if (!campoMinimo.validity.valid || !campoMaximo.validity.valid) return;
+
+      const minimo = Number(campoMinimo.value);
+      const maximo = Number(campoMaximo.value);
+      if (minimo > maximo) {
+        campoMaximo.setCustomValidity("El máximo debe ser mayor o igual al mínimo.");
+        return;
+      }
+
+      campoMedicion.min = String(minimo);
+      campoMedicion.max = String(maximo);
+      const valor = Number(campoMedicion.value);
+      campoMedicion.setCustomValidity(
+        campoMedicion.value && (valor < minimo || valor > maximo)
+          ? `El valor debe estar entre ${minimo} y ${maximo}.`
+          : ""
+      );
+    }
+
+    async function peticion(url, opciones) {
+      const respuesta = await fetch(url, opciones);
+      const resultado = respuesta.status === 204 ? null : await respuesta.json();
+      if (!respuesta.ok) throw new Error(resultado?.error || "No se pudo completar la operación.");
+      return resultado;
+    }
+
+    function agregarCelda(fila, texto) {
+      const celda = document.createElement("td");
+      celda.textContent = texto;
+      fila.append(celda);
+      return celda;
+    }
+
+    function mostrarEnvios() {
+      filasEnvios.replaceChildren();
+      contadorEnvios.textContent = `${envios.length} ${envios.length === 1 ? "registro" : "registros"}`;
+      if (envios.length === 0) {
+        const fila = document.createElement("tr");
+        const celda = agregarCelda(fila, "Aún no hay envíos.");
+        celda.colSpan = 10;
+        filasEnvios.append(fila);
+        return;
+      }
+
+      for (const envio of envios) {
+        const fila = document.createElement("tr");
+        agregarCelda(fila, String(envio.id));
+        agregarCelda(fila, envio.instrumento_nombre);
+        agregarCelda(fila, envio.numero_serie || "—");
+        agregarCelda(
+          fila,
+          envio.tipo_instrumento === "analogico" ? "Analógico"
+            : envio.tipo_instrumento === "digital" ? "Digital" : "No especificado"
+        );
+        agregarCelda(
+          fila,
+          envio.valor_medicion === null || envio.valor_medicion === undefined
+            ? "—" : `${envio.valor_medicion} ${envio.unidad || ""}`.trim()
+        );
+        agregarCelda(fila, String(envio.arinc429_word));
+        const palabra = agregarCelda(fila, `${envio.arinc429_hex} / ${envio.arinc429_bytes_hex}`);
+        palabra.className = "word-cell";
+        const modo = agregarCelda(fila, "");
+        const etiquetaModo = document.createElement("span");
+        etiquetaModo.className = "mode-label";
+        etiquetaModo.textContent = envio.salida_modo === "simulacion" ? "SIMULACIÓN" : envio.salida_modo;
+        modo.append(etiquetaModo);
+        agregarCelda(fila, envio.creado_en);
+        const acciones = document.createElement("td");
+        const grupo = document.createElement("div");
+        grupo.className = "row-actions";
+        const editar = document.createElement("button");
+        editar.type = "button";
+        editar.textContent = "Editar";
+        editar.setAttribute("aria-label", `Editar envío ${envio.id}`);
+        editar.addEventListener("click", () => iniciarEdicion(envio));
+        const tono = document.createElement("button");
+        tono.type = "button";
+        tono.className = "tone-button";
+        tono.textContent = "Tono";
+        tono.setAttribute("aria-label", `Escuchar tono para envío ${envio.id}`);
+        tono.title = "Tono proporcional al dato bruto; no es una tensión calibrada.";
+        tono.addEventListener("click", () => reproducirTono(envio.arinc429_word));
+        const eliminar = document.createElement("button");
+        eliminar.type = "button";
+        eliminar.className = "delete-button";
+        eliminar.textContent = "Eliminar";
+        eliminar.setAttribute("aria-label", `Eliminar envío ${envio.id}`);
+        eliminar.addEventListener("click", () => borrarEnvio(envio));
+        grupo.append(editar, tono, eliminar);
+        acciones.append(grupo);
+        fila.append(acciones);
+        filasEnvios.append(fila);
+      }
+    }
+
+    function mostrarInstrumentos() {
+      filasInstrumentos.replaceChildren();
+      contadorInstrumentos.textContent = `${perfiles.length} ${perfiles.length === 1 ? "instrumento" : "instrumentos"}`;
+      for (const instrumento of perfiles) {
+        const fila = document.createElement("tr");
+        agregarCelda(fila, String(instrumento.id));
+        agregarCelda(fila, instrumento.nombre);
+        agregarCelda(fila, instrumento.modelo || "—");
+        agregarCelda(fila, instrumento.fabricante || "—");
+        agregarCelda(fila, instrumento.tipo || "—");
+        agregarCelda(fila, instrumento.estado);
+        const acciones = agregarCelda(fila, "");
+        const grupo = document.createElement("div");
+        grupo.className = "inventory-actions";
+        const editar = document.createElement("button");
+        editar.type = "button";
+        editar.textContent = "Editar";
+        editar.addEventListener("click", () => iniciarEdicionInstrumento(instrumento));
+        const eliminar = document.createElement("button");
+        eliminar.type = "button";
+        eliminar.className = "delete-button";
+        eliminar.textContent = "Eliminar";
+        eliminar.addEventListener("click", () => borrarInstrumento(instrumento));
+        grupo.append(editar, eliminar);
+        acciones.append(grupo);
+        filasInstrumentos.append(fila);
+      }
+      if (!perfiles.length) {
+        const fila = document.createElement("tr");
+        const celda = agregarCelda(fila, "No hay instrumentos registrados.");
+        celda.colSpan = 7;
+        filasInstrumentos.append(fila);
+      }
+    }
+
+    async function cargarEnvios() {
+      try {
+        envios = await peticion("/api/envios");
+        mensajeListado.textContent = "";
+        mostrarEnvios();
+      } catch (error) {
+        contadorEnvios.textContent = "No disponible";
+        mensajeListado.textContent = error.message;
+      }
+    }
+
+    function iniciarEdicion(envio) {
+      idEnEdicion = envio.id;
+      selectorPerfil.value = perfiles.some((perfil) => String(perfil.id) === String(envio.instrumento_id))
+        ? String(envio.instrumento_id) : "";
+      actualizarPerfil();
+      campoNumeroSerie.value = envio.numero_serie || "";
+      campoTipoInstrumento.value = envio.tipo_instrumento || "";
+      campoMedicion.value = envio.valor_medicion ?? "";
+      campoMinimo.value = envio.minimo ?? "0";
+      campoMaximo.value = envio.maximo ?? "4294967295";
+      unidadMedicion.textContent = envio.unidad ? `(${envio.unidad})` : "";
+      campoDato.value = envio.arinc429_word;
+      actualizarLimitesDato();
+      actualizarVistaPrevia();
+      tituloFormulario.textContent = `Editar envío #${envio.id}`;
+      textoBoton.textContent = "Guardar cambios";
+      cancelarEdicion.hidden = false;
+      mensaje.textContent = "";
+      formulario.scrollIntoView({ behavior: "smooth", block: "center" });
+      campoMedicion.focus();
+    }
+
+    function terminarEdicion() {
+      idEnEdicion = null;
+      formulario.reset();
+      actualizarPerfil();
+      actualizarLimitesDato();
+      actualizarVistaPrevia();
+      tituloFormulario.textContent = "Crear envío";
+      textoBoton.textContent = "Crear envío";
+      cancelarEdicion.hidden = true;
+    }
+
+    function actualizarVistaPrevia() {
+      const dato = Number(campoDato.value);
+      if (!Number.isInteger(dato) || dato < 0 || dato > 4294967295) {
+        previewHex.textContent = "Ingresa un entero de 32 bits";
+        previewBin.textContent = "";
+        return;
+      }
+      previewHex.textContent = `0x${dato.toString(16).toUpperCase().padStart(8, "0")}`;
+      const bits = dato.toString(2).padStart(32, "0");
+      previewBin.textContent = bits.match(/.{4}/g).join(" ");
+      camposBits.paridad.textContent = bits.slice(0, 1);
+      camposBits.ssm.textContent = bits.slice(1, 3);
+      camposBits.datos.textContent = bits.slice(3, 22);
+      camposBits.sdi.textContent = bits.slice(22, 24);
+      camposBits.label.textContent = bits.slice(24, 32);
+    }
+
+    async function reproducirTono(dato) {
+      const contexto = new AudioContext();
+      const oscilador = contexto.createOscillator();
+      const volumen = contexto.createGain();
+      oscilador.frequency.value = 220 + (Number(dato) / 4294967295) * 660;
+      volumen.gain.value = 0.08;
+      oscilador.connect(volumen);
+      volumen.connect(contexto.destination);
+      oscilador.start();
+      oscilador.stop(contexto.currentTime + 0.45);
+      oscilador.onended = () => contexto.close();
+    }
+
+    async function borrarEnvio(envio) {
+      if (!confirm(`¿Eliminar el envío #${envio.id}?`)) return;
+      try {
+        await peticion(`/api/envios/${envio.id}`, { method: "DELETE" });
+        if (idEnEdicion === envio.id) terminarEdicion();
+        await cargarEnvios();
+      } catch (error) {
+        mensajeListado.textContent = error.message;
+      }
+    }
+
+    async function cargarPerfiles() {
+      try {
+        [perfiles, catalogoInstrumentos] = await Promise.all([
+          peticion("/api/instrumentos"),
+          peticion("/api/catalogo-instrumentos")
+        ]);
+        const selectorNombre = document.querySelector("#inv-nombre");
+        selectorNombre.replaceChildren(new Option("Selecciona un instrumento", ""));
+        for (const item of catalogoInstrumentos) {
+          selectorNombre.add(new Option(item.nombre, item.nombre));
+        }
+        selectorNombre.disabled = false;
+        selectorPerfil.replaceChildren(new Option("Selecciona un instrumento", ""));
+        for (const instrumento of perfiles.filter((item) => item.estado === "activo")) {
+          selectorPerfil.add(new Option(instrumento.nombre, instrumento.id));
+        }
+        selectorPerfil.disabled = !perfiles.some((item) => item.estado === "activo");
+        boton.disabled = selectorPerfil.disabled;
+        mostrarInstrumentos();
+        actualizarPerfil();
+      } catch (error) {
+        selectorPerfil.replaceChildren(new Option("No se pudo cargar el catálogo", ""));
+        document.querySelector("#inv-nombre").replaceChildren(new Option("No se pudo cargar el catálogo", ""));
+        mensaje.textContent = error.message;
+        mensaje.dataset.state = "error";
+        contadorInstrumentos.textContent = "No disponible";
+        mensajeInstrumentos.textContent = error.message;
+      }
+    }
+
+    function limpiarFormularioInstrumento() {
+      idInstrumentoEnEdicion = null;
+      formularioInstrumento.reset();
+      document.querySelector("#inv-estado").value = "activo";
+      botonGuardarInstrumento.textContent = "Agregar instrumento";
+      cancelarInstrumento.hidden = true;
+    }
+
+    function iniciarEdicionInstrumento(instrumento) {
+      idInstrumentoEnEdicion = instrumento.id;
+      const selectorNombre = document.querySelector("#inv-nombre");
+      selectorNombre.value = instrumento.nombre || "";
+      document.querySelector("#inv-modelo").value = instrumento.modelo || "";
+      document.querySelector("#inv-fabricante").value = instrumento.fabricante || "";
+      document.querySelector("#inv-tipo").value = instrumento.tipo || "";
+      document.querySelector("#inv-estado").value = instrumento.estado || "activo";
+      document.querySelector("#inv-descripcion").value = instrumento.descripcion || "";
+      botonGuardarInstrumento.textContent = "Guardar cambios";
+      cancelarInstrumento.hidden = false;
+      formularioInstrumento.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.querySelector("#inv-nombre").focus();
+    }
+
+    async function borrarInstrumento(instrumento) {
+      if (!confirm(`¿Eliminar “${instrumento.nombre}” del inventario?`)) return;
+      try {
+        await peticion(`/api/instrumentos/${instrumento.id}`, { method: "DELETE" });
+        mensajeInstrumentos.textContent = "Instrumento eliminado.";
+        limpiarFormularioInstrumento();
+        await cargarPerfiles();
+      } catch (error) {
+        mensajeInstrumentos.textContent = error.message;
+      }
+    }
+
+    formularioInstrumento.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      const datos = {
+        nombre: document.querySelector("#inv-nombre").value,
+        modelo: document.querySelector("#inv-modelo").value,
+        fabricante: document.querySelector("#inv-fabricante").value,
+        tipo: document.querySelector("#inv-tipo").value,
+        estado: document.querySelector("#inv-estado").value,
+        descripcion: document.querySelector("#inv-descripcion").value
+      };
+      try {
+        await peticion(
+          idInstrumentoEnEdicion === null ? "/api/instrumentos" : `/api/instrumentos/${idInstrumentoEnEdicion}`,
+          {
+            method: idInstrumentoEnEdicion === null ? "POST" : "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datos)
+          }
+        );
+        mensajeInstrumentos.textContent = idInstrumentoEnEdicion === null
+          ? "Instrumento agregado al inventario."
+          : "Instrumento actualizado.";
+        limpiarFormularioInstrumento();
+        await cargarPerfiles();
+      } catch (error) {
+        mensajeInstrumentos.textContent = error.message;
+      }
+    });
+
+    cancelarInstrumento.addEventListener("click", limpiarFormularioInstrumento);
+
+    formulario.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      if (envioEnCurso) return;
+      envioEnCurso = true;
+      boton.disabled = true;
+      mensaje.textContent = "Enviando…";
+      mensaje.dataset.state = "";
+
+      try {
+        const url = idEnEdicion === null ? "/api/envios" : `/api/envios/${idEnEdicion}`;
+        const metodo = idEnEdicion === null ? "POST" : "PUT";
+        const esNuevoEnvio = idEnEdicion === null;
+        const perfil = perfilSeleccionado();
+        const headers = { "Content-Type": "application/json" };
+        if (esNuevoEnvio) headers["Idempotency-Key"] = claveSolicitud;
+        const resultado = await peticion(url, {
+          method: metodo,
+          headers,
+          body: JSON.stringify({
+            instrumento_id: Number(selectorPerfil.value),
+            perfil_id: "personalizado",
+            numero_serie: campoNumeroSerie.value.trim(),
+            tipo_instrumento: campoTipoInstrumento.value,
+            valor_medicion: Number(campoMedicion.value),
+            minimo: Number(campoMinimo.value),
+            maximo: Number(campoMaximo.value),
+            unidad: "",
+            dato_raw: Number(campoDato.value)
+          })
+        });
+        mensaje.textContent = idEnEdicion === null
+          ? `Envío #${resultado.id} creado para ${resultado.instrumento_nombre}.`
+          : `Envío #${resultado.id} actualizado.`;
+        mensaje.dataset.state = "success";
+        if (esNuevoEnvio) claveSolicitud = crypto.randomUUID();
+        terminarEdicion();
+        await cargarEnvios();
+      } catch (error) {
+        mensaje.textContent = error.message || "No se pudo conectar con el servidor.";
+        mensaje.dataset.state = "error";
+      } finally {
+        envioEnCurso = false;
+        boton.disabled = false;
+        selectorPerfil.focus();
+      }
+    });
+
+    cancelarEdicion.addEventListener("click", terminarEdicion);
+    selectorPerfil.addEventListener("change", () => {
+      actualizarPerfil();
+      campoMedicion.value = "";
+    });
+    campoMinimo.addEventListener("input", actualizarLimitesDato);
+    campoMaximo.addEventListener("input", actualizarLimitesDato);
+    campoDato.addEventListener("input", actualizarVistaPrevia);
+    campoMedicion.addEventListener("input", actualizarLimitesDato);
+
+    boton.disabled = true;
+    cargarPerfiles();
+    cargarEnvios();
+    actualizarVistaPrevia();
+  </script>
+</body>
+</html>
