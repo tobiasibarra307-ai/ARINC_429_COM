@@ -89,6 +89,26 @@ Reemplaza `/dev/ttyACM0` por el puerto que encontraste. El puente registra cada 
 
 El botón `Tono` reproduce por la salida de audio del equipo un tono proporcional al valor decimal de la palabra. Es una representación audible, no una salida de tensión DC calibrada. Para producir tensión con unidades/rango garantizados se requiere un DAC y definir voltaje mínimo/máximo, aislamiento y calibración.
 
+### Receptor Arduino para la práctica
+
+El sketch `arduino/ARINC429Receiver.ino` recibe por USB serial una palabra ARINC completa, una por línea, a 115200 baudios. Usa el mismo formato que `serial_bridge.py`: decimal (`2147483648`), hexadecimal (`0x80000000`), binario con prefijo (`0b...`) o 32 bits (`1000...`). Valida paridad impar antes de actuar; muestra en un LCD 16x2 el label en octal y el dato bruto de 19 bits. La web no define una tabla entre labels ARINC y nombres de instrumento, así que el sketch no inventa esa correspondencia.
+
+Conexiones en Tinkercad (Arduino Uno):
+
+| Componente | Conexión |
+| --- | --- |
+| LCD RS, E, D4, D5, D6, D7 | Pines 7, 6, 5, 4, 3, 2 |
+| LCD VSS, RW, K | GND |
+| LCD VDD, A | 5 V (A mediante resistencia) |
+| Potenciómetro LCD | Extremos a 5 V/GND; cursor a VO |
+| Servo señal | Pin 9; alimentación a 5 V/GND |
+| Salida para bit 1 | Pin 13 |
+| Salida para bit 0 | Pin 12 |
+
+Conecta todas las tierras en común. Para cada uno de los 32 bits, el sketch activa brevemente el pin 13 si el bit vale 1 o el pin 12 si vale 0; la salida es una codificación lógica de demostración, no una señal eléctrica ARINC 429. El servo recibe PWM de control en el pin 9: el dato bruto se escala linealmente a 0–180 grados como demostración, no como medición física calibrada. No conectes el servo a una salida de auriculares: el audio no es una salida de control de servo.
+
+Para probar desde el monitor serial de Tinkercad, selecciona 115200 baudios y envía `2147483648` terminado en salto de línea. Debe mostrar label `000`, dato `0` y paridad válida. En una instalación física, una interfaz serie externa debe enviar las líneas; el sketch no recibe directamente desde la web, ya que el puente `serial_bridge.py` existente transporta datos en la dirección Arduino → web.
+
 ## Instalar y ejecutar
 
 Desde esta carpeta:
